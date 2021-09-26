@@ -88,7 +88,10 @@ def plot_points(points, show_circle=SHOW_CIRCLE, show_triangles=SHOW_TRIANGLES,
                       ylim=[-1 * math.sqrt(2) - view_circle_spacing,
                             -1 * math.sqrt(2) + 2 + view_circle_spacing],
                       aspect="equal")
-    ax.set_title(PLOT_TITLE)
+    if show_spiral:
+        ax.set_title("The Spiral of Theodorus and the Reverse Wurzelschnecke")
+    else:
+        ax.set_title(PLOT_TITLE)
     ax.grid()
 
     def plot_point(index, color_percent_done=False):
@@ -211,5 +214,8 @@ def plot_points(points, show_circle=SHOW_CIRCLE, show_triangles=SHOW_TRIANGLES,
                                       + move_spiral_frames + 1),
             interval=ANIMATION_INTERVAL, repeat=False,
             fargs=(x_points, y_points))
+            
+        # Save the animation.
+        # move_spiral_animation.save("data/animation.gif", fps=15)
         
     plt.show()
