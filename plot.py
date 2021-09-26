@@ -53,6 +53,13 @@ def plot_circle():
              marker=".", markersize=10, color=[1, 0, 1])
 
 
+def pause_plot_animation(plot_animation, seconds=1):
+    # Pause the animation.
+    plot_animation.pause()
+    time.sleep(seconds)
+    plot_animation.resume()
+
+
 def plot_points(points, show_circle=SHOW_CIRCLE, show_triangles=SHOW_TRIANGLES,
                 animate_plot=ANIMATE_PLOT, connect=CONNECT_POINTS,
                 plot_triangle_point=PLOT_TRIANGLE_POINT,
@@ -125,59 +132,83 @@ def plot_points(points, show_circle=SHOW_CIRCLE, show_triangles=SHOW_TRIANGLES,
     # Do an animation showing how the Spiral of Theodorus overlaps with the
     # reverse Wurzelschnecke.
     if show_spiral:
+        # How many triangles to calculate for the Spiral of Theodorus.
         amount = SPIRAL_OF_THEODORUS_AMOUNT
+        # Start the rotation at 0 radians.
         current_rotation = 0
-
+        
+        # The starting points of the Spiral of Theodorus.
         x_points = [1, 1]
         y_points = [0, 1]
-
+    
+        # Create the points for the Spiral of Theodorus.
         for n in range(2, amount + 1):
+            # Use the previous point to calculate the next point.
             current_point = (x_points[-1], y_points[-1] + 1)
-
+            
+            # Find the rotation.
             current_rotation += math.atan(1 / math.sqrt(n - 1))
-
+            
+            # Rotate the point.
             current_point = Triangle.rotate_point(
                 (x_points[-1], y_points[-1]), current_point,
-                -current_rotation)
-
+                current_rotation)
+            
+            # Add the new point to the list of points.
             x_points.append(current_point[0])
             y_points.append(current_point[1])
         
         # Setup the rotation animation of the spiral.
+        flip_spiral_frames = 1
         rotate_spiral_frames = 50
-        # flip_spiral_frames = 1
         move_spiral_frames = 50
         x_distance = 2
         spiral_line, = ax.plot([], [], linewidth=2,
                                color=[1, 0, 0])
-        
+
         def move_spiral(index, x_points, y_points):
-            if index + 1 <= rotate_spiral_frames:
-                if index == 1:
-                    # Pause at the start.
-                    move_spiral_animation.pause()
-                    time.sleep(1)
-                    move_spiral_animation.resume()
-            
-                x_points, y_points = rotate_points(
-                    (1, 1), x_points, y_points,
-                    -math.atan(1) * ((index + 1) / rotate_spiral_frames))
-    
+            if index == 0:
+                # Set the starting coordinates for the Spiral of Theodorus.
                 spiral_line.set_data(x_points, y_points)
-            else:
-                if index == 50:
-                    # Pause before flipping.
-                    time.sleep(1)
-                    move_spiral_animation.resume()
+            elif index <= flip_spiral_frames:
+                pause_plot_animation(move_spiral_animation)
                 
+                # Flip the x coordinates about the line x=1. The Spiral of
+                # Theodorus will then be rotated, followed by being translated,
+                # in order to overlap with the reverse Wurzelschnecke.
                 current_x_points = spiral_line.get_xdata()
-                new_x_points = [point - x_distance / move_spiral_frames for
-                                point in current_x_points]
-                spiral_line.set_xdata(new_x_points)
+                flipped_x_points = [-p + 2 for p in current_x_points]
+                spiral_line.set_xdata(flipped_x_points)
+                
+            elif index <= flip_spiral_frames + rotate_spiral_frames:
+                if index == flip_spiral_frames + 1:
+                    pause_plot_animation(move_spiral_animation)
+                
+                # Rotate the Spiral of Theodorus until it is lined up
+                # correctly. It will be rotated by by arctan(1) radians
+                # clockwise.
+                current_x_points = spiral_line.get_xdata()
+                current_y_points = spiral_line.get_ydata()
+                rotated_x_points, rotated_y_points = rotate_points(
+                    (1, 1), current_x_points, current_y_points,
+                    -math.atan(1) / rotate_spiral_frames)
+                spiral_line.set_data(rotated_x_points, rotated_y_points)
+            else:
+                if index == flip_spiral_frames + rotate_spiral_frames + 1:
+                    pause_plot_animation(move_spiral_animation)
+
+                # Translate the Spiral of Theodorus until it overlaps. It will
+                # be translated 2 units to the left.
+                current_x_points = spiral_line.get_xdata()
+                moved_x_points = [point - x_distance / move_spiral_frames for
+                                  point in current_x_points]
+                spiral_line.set_xdata(moved_x_points)
         
-        # Create the animation.
+        # Create the animation. Add 1 to the number of frames, since the first
+        # one is used as a setup.
         move_spiral_animation = FuncAnimation(
-            fig, move_spiral, frames=rotate_spiral_frames + move_spiral_frames,
+            fig, move_spiral, frames=(flip_spiral_frames + rotate_spiral_frames
+                                      + move_spiral_frames + 1),
             interval=ANIMATION_INTERVAL, repeat=False,
             fargs=(x_points, y_points))
         

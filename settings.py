@@ -1,12 +1,12 @@
 # If the entire triangle should be drawn. If not, just a point of the triangles
-# is drawn (which can be set with the constant PLOT_TRIANGLE_POINT.
+# is drawn (which can be set with the constant PLOT_TRIANGLE_POINT).
 SHOW_TRIANGLES = True
 # Which triangle's points to plot. Options are: "outside left",
 # "outside right", or "inside".
 PLOT_TRIANGLE_POINT = "inside"
 # Do an animation showing how the Spiral of Theodorus overlaps with the reverse
 # Wurzelschnecke.
-SHOW_SPIRAL = False
+SHOW_SPIRAL = True
 # How many spiral of theodorus triangles to plot when doing the animation
 # showing how the Spiral of Theodorus overlaps with the reverse Wurzelschnecke.
 SPIRAL_OF_THEODORUS_AMOUNT = 16
